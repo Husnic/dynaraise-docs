@@ -23,7 +23,7 @@
   "variable": [
     {
       "key": "BASE_URL",
-      "value": "https://api.dynaraise.com",
+      "value": "https://service-test.dynaraise.com",
       "type": "string"
     },
     {
@@ -57,12 +57,12 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Help Build a School in Rural Nigeria\",\n  \"summary\": \"We are raising funds to build a school for children in rural communities\",\n  \"story\": \"<p>Full campaign story with HTML formatting...</p>\",\n  \"target\": 5000000,\n  \"currency\": \"NGN\",\n  \"type\": \"CHARITY\",\n  \"payout\": \"FLEXIBLE\",\n  \"categoryId\": \"category_id_here\",\n  \"beneficiary\": {\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"phoneNumber\": \"+2348012345678\",\n    \"accountNumber\": \"0123456789\",\n    \"accountName\": \"John Doe\",\n    \"bankName\": \"Access Bank\",\n    \"bankCode\": \"044\",\n    \"bvn\": \"12345678901\"\n  }\n}"
+              "raw": "{\n  \"title\": \"Help Build a School in Rural Nigeria\",\n  \"summary\": \"We are raising funds to build a school for children in rural communities\",\n  \"description\": \"<p>Full campaign story with HTML formatting. This is a detailed description of the campaign goals, impact, and how funds will be used.</p>\",\n  \"target\": 5000000,\n  \"currency\": \"NGN\",\n  \"country\": \"NG\",\n  \"type\": \"PERSONAL\",\n  \"model\": \"REGULAR\",\n  \"payoutType\": \"PARTIAL\",\n  \"category\": \"category_id_here\",\n  \"isPublic\": true,\n  \"isForSelf\": false,\n  \"beneficiary\": {\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"phoneNumber\": \"+2348012345678\",\n    \"accountNumber\": \"0123456789\",\n    \"accountName\": \"John Doe\",\n    \"bankName\": \"Access Bank\",\n    \"bankCode\": \"044\",\n    \"bvn\": \"12345678901\"\n  }\n}"
             },
             "url": {
-              "raw": "{{BASE_URL}}/campaigns-admin/create",
+              "raw": "{{BASE_URL}}/campaigns-admin/integration/create",
               "host": ["{{BASE_URL}}"],
-              "path": ["campaigns-admin", "create"]
+              "path": ["campaigns-admin", "integration", "create"]
             },
             "description": "Create a new campaign with beneficiary KYC details. The beneficiary information will be validated and BVN will be nullified after successful verification."
           },
@@ -143,7 +143,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Updated Campaign Title\",\n  \"summary\": \"Updated summary\",\n  \"story\": \"<p>Updated story...</p>\",\n  \"target\": 6000000\n}"
+              "raw": "{\n  \"title\": \"Updated Campaign Title\",\n  \"summary\": \"Updated summary\",\n  \"description\": \"<p>Updated story...</p>\",\n  \"target\": 6000000,\n  \"beneficiary\": {\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"phoneNumber\": \"+2348012345678\",\n    \"accountNumber\": \"0123456789\",\n    \"accountName\": \"John Doe\",\n    \"bankName\": \"Access Bank\",\n    \"bankCode\": \"044\"\n  }\n}"
             },
             "url": {
               "raw": "{{BASE_URL}}/campaigns-admin/:campaignId",
@@ -224,7 +224,7 @@
               "mode": "formdata",
               "formdata": [
                 {
-                  "key": "file",
+                  "key": "bannerImage",
                   "type": "file",
                   "src": []
                 }
@@ -540,25 +540,23 @@
         {
           "name": "Create Payout Request",
           "request": {
-            "method": "POST",
+            "method": "PATCH",
             "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
               {
                 "key": "x-organization-id",
                 "value": "{{ORGANIZATION_ID}}"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"campaignId\": \"campaign_id_here\",\n  \"amount\": 1000000,\n  \"reason\": \"First milestone completed - School foundation laid\"\n}"
-            },
             "url": {
-              "raw": "{{BASE_URL}}/campaigns-admin/request-payout",
+              "raw": "{{BASE_URL}}/campaigns-admin/request-payout/:campaignId",
               "host": ["{{BASE_URL}}"],
-              "path": ["campaigns-admin", "request-payout"]
+              "path": ["campaigns-admin", "request-payout", ":campaignId"],
+              "variable": [
+                {
+                  "key": "campaignId",
+                  "value": "campaign_id_here"
+                }
+              ]
             },
             "description": "Request a payout for a campaign. Campaign must be approved and have sufficient funds."
           },
