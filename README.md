@@ -84,7 +84,7 @@ x-organization-id: your_organization_id
 
 **Production**: `https://api.dynaraise.com`
 
-**Staging**: `https://api-staging.dynaraise.com` (if available)
+**Test Environment**: `https://service-test.dynaraise.com`
 
 ## API Endpoints
 
@@ -92,28 +92,38 @@ x-organization-id: your_organization_id
 
 #### Create Campaign
 
-Create a new fundraising campaign with beneficiary KYC details.
+Create a new fundraising campaign with beneficiary KYC details via the integration endpoint.
 
 ```http
-POST /campaigns-admin/create
+POST /campaigns-admin/integration/create
 ```
 
 **Request Body:**
 
 ```json
 {
-  "title": "Campaign Title",
-  "summary": "Brief summary",
-  "story": "<p>Full HTML story</p>",
+  "title": "Help Build a School in Rural Nigeria",
+  "summary": "We are raising funds to build a school for children in rural communities",
+  "description": "<p>Full campaign story with HTML formatting. This is a detailed description of the campaign goals, impact, and how funds will be used.</p>",
   "target": 5000000,
   "currency": "NGN",
-  "type": "CHARITY",
-  "payout": "FLEXIBLE",
-  "categoryId": "category_id",
+  "country": "NG",
+  "type": "PERSONAL",
+  "model": "REGULAR",
+  "payoutType": "PARTIAL",
+  "category": "category_id_here",
+  "isPublic": true,
+  "isSubscription": false,
+  "isForSelf": false,
+  "address": "123 School Road, Rural Area",
+  "state": "Lagos",
+  "endDate": "2025-12-31T23:59:59.000Z",
+  "videoUrl": "https://youtube.com/watch?v=example",
+  "manualRealized": 0,
   "beneficiary": {
     "firstName": "John",
     "lastName": "Doe",
-    "email": "john@example.com",
+    "email": "john.doe@example.com",
     "phoneNumber": "+2348012345678",
     "accountNumber": "0123456789",
     "accountName": "John Doe",
@@ -123,6 +133,28 @@ POST /campaigns-admin/create
   }
 }
 ```
+
+**Field Descriptions:**
+
+- `title` (required): Campaign title
+- `summary` (optional): Brief campaign summary
+- `description` (optional): Full campaign story with HTML formatting
+- `target` (required): Fundraising goal in minor currency units (e.g., kobo for NGN)
+- `currency` (required): Currency code (e.g., "NGN", "USD")
+- `country` (required): Country code (e.g., "NG")
+- `type` (required): Campaign type - `PERSONAL`, `ORGANIZATION`, or `WALLET`
+- `model` (required): Campaign model - `REGULAR` or `SUBSCRIPTION`
+- `payoutType` (optional): Payout type - `PARTIAL` (flexible) or `FULL` (all-or-nothing)
+- `category` (optional): Category ID
+- `isPublic` (optional): Whether campaign is publicly visible
+- `isSubscription` (optional): Enable recurring donations
+- `isForSelf` (optional): Whether campaign is for the creator
+- `address` (optional): Campaign location address
+- `state` (optional): State/region
+- `endDate` (optional): Campaign end date (ISO 8601)
+- `videoUrl` (optional): YouTube or video URL
+- `manualRealized` (optional): Manually added amount
+- `beneficiary` (required): Beneficiary KYC details for payouts
 
 **Response:**
 
@@ -163,6 +195,41 @@ Update campaign details (only for DRAFT or PENDING campaigns).
 PATCH /campaigns-admin/:campaignId
 ```
 
+**Request Body:**
+
+```json
+{
+  "title": "Updated Campaign Title",
+  "summary": "Updated summary",
+  "description": "<p>Updated story with more details about the campaign progress and impact...</p>",
+  "target": 6000000,
+  "category": "category_id_here",
+  "model": "REGULAR",
+  "isPublic": true,
+  "isSubscription": false,
+  "videoUrl": "https://youtube.com/watch?v=updated_video",
+  "address": "456 Updated Address",
+  "state": "Lagos",
+  "endDate": "2025-12-31T23:59:59.000Z",
+  "isDeactivated": false,
+  "payoutType": "PARTIAL",
+  "isForSelf": false,
+  "manualRealized": 100000,
+  "beneficiary": {
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john.doe@example.com",
+    "phoneNumber": "+2348012345678",
+    "accountNumber": "0123456789",
+    "accountName": "John Doe",
+    "bankName": "Access Bank",
+    "bankCode": "044"
+  }
+}
+```
+
+**Note:** All fields are optional. Only include fields you want to update. BVN is not required for updates.
+
 #### Delete Campaign
 
 Delete a campaign (only DRAFT campaigns can be deleted).
@@ -194,7 +261,7 @@ Content-Type: multipart/form-data
 
 **Form Data:**
 
-- `file`: Image file (jpg, png, webp, max 5MB)
+- `bannerImage`: Image file (jpg, png, webp, max 5MB)
 
 #### Upload Campaign Documents
 
@@ -308,18 +375,12 @@ GET /payouts?page=1&limit=10
 Request a payout for a campaign.
 
 ```http
-POST /campaigns-admin/request-payout
+PATCH /campaigns-admin/request-payout/:campaignId
 ```
 
-**Request Body:**
+**Path Parameters:**
 
-```json
-{
-  "campaignId": "campaign_id",
-  "amount": 1000000,
-  "reason": "First milestone completed"
-}
-```
+- `campaignId`: ID of the campaign to request payout for
 
 **Requirements:**
 
@@ -354,13 +415,13 @@ PATCH /organization-admin/:organizationId
 The Dynaraise API supports powerful querying using `@dataui/crud-request`. Build queries with `RequestQueryBuilder`:
 
 ```javascript
-import { RequestQueryBuilder } from '@dataui/crud-request';
+import { RequestQueryBuilder } from "@dataui/crud-request";
 
 const queryString = RequestQueryBuilder.create({
-  fields: ['id', 'title', 'target', 'realized'],
-  search: { $and: [{ published: { $eq: 'APPROVED' } }] },
-  join: [{ field: 'category' }],
-  sort: [{ field: 'createdAt', order: 'DESC' }],
+  fields: ["id", "title", "target", "realized"],
+  search: { $and: [{ published: { $eq: "APPROVED" } }] },
+  join: [{ field: "category" }],
+  sort: [{ field: "createdAt", order: "DESC" }],
   page: 1,
   limit: 25,
 }).query(false);
@@ -375,7 +436,7 @@ fetch(`${baseUrl}/campaigns-admin?${queryString}`);
 
 ```javascript
 const query = RequestQueryBuilder.create({
-  search: { $and: [{ published: { $eq: 'APPROVED' } }] },
+  search: { $and: [{ published: { $eq: "APPROVED" } }] },
 }).query(false);
 // GET /campaigns-admin?s={"$and":[{"published":{"$eq":"APPROVED"}}]}
 ```
@@ -384,7 +445,7 @@ const query = RequestQueryBuilder.create({
 
 ```javascript
 const query = RequestQueryBuilder.create({
-  search: { $and: [{ title: { $cont: 'education' } }] },
+  search: { $and: [{ title: { $cont: "education" } }] },
 }).query(false);
 ```
 
@@ -393,10 +454,10 @@ const query = RequestQueryBuilder.create({
 ```javascript
 const query = RequestQueryBuilder.create({
   search: {
-    $and: [{ published: { $eq: 'APPROVED' } }, { target: { $gte: 5000000 } }],
+    $and: [{ published: { $eq: "APPROVED" } }, { target: { $gte: 5000000 } }],
   },
-  join: [{ field: 'category' }],
-  sort: [{ field: 'target', order: 'DESC' }],
+  join: [{ field: "category" }],
+  sort: [{ field: "target", order: "DESC" }],
   limit: 20,
 }).query(false);
 ```
