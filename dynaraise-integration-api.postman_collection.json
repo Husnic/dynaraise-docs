@@ -1,0 +1,629 @@
+{
+  "info": {
+    "name": "Dynaraise Integration API",
+    "description": "Complete API collection for 3rd party integrations with Dynaraise platform. Includes campaign management, donations, payouts, and webhook notifications.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "value",
+        "value": "{{API_KEY}}",
+        "type": "string"
+      },
+      {
+        "key": "key",
+        "value": "x-api-key",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "https://api.dynaraise.com",
+      "type": "string"
+    },
+    {
+      "key": "API_KEY",
+      "value": "dr_live_your_api_key_here",
+      "type": "string"
+    },
+    {
+      "key": "ORGANIZATION_ID",
+      "value": "your_organization_id",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Campaigns",
+      "item": [
+        {
+          "name": "Create Campaign",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-organization-id",
+                "value": "{{ORGANIZATION_ID}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Help Build a School in Rural Nigeria\",\n  \"summary\": \"We are raising funds to build a school for children in rural communities\",\n  \"story\": \"<p>Full campaign story with HTML formatting...</p>\",\n  \"target\": 5000000,\n  \"currency\": \"NGN\",\n  \"type\": \"CHARITY\",\n  \"payout\": \"FLEXIBLE\",\n  \"categoryId\": \"category_id_here\",\n  \"beneficiary\": {\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"phoneNumber\": \"+2348012345678\",\n    \"accountNumber\": \"0123456789\",\n    \"accountName\": \"John Doe\",\n    \"bankName\": \"Access Bank\",\n    \"bankCode\": \"044\",\n    \"bvn\": \"12345678901\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/campaigns-admin/create",
+              "host": ["{{BASE_URL}}"],
+              "path": ["campaigns-admin", "create"]
+            },
+            "description": "Create a new campaign with beneficiary KYC details. The beneficiary information will be validated and BVN will be nullified after successful verification."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Campaign",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-organization-id",
+                "value": "{{ORGANIZATION_ID}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/campaigns-admin/:campaignId",
+              "host": ["{{BASE_URL}}"],
+              "path": ["campaigns-admin", ":campaignId"],
+              "variable": [
+                {
+                  "key": "campaignId",
+                  "value": "campaign_id_here"
+                }
+              ]
+            },
+            "description": "Get details of a specific campaign"
+          },
+          "response": []
+        },
+        {
+          "name": "List Campaigns",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-organization-id",
+                "value": "{{ORGANIZATION_ID}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/campaigns-admin?page=1&limit=10",
+              "host": ["{{BASE_URL}}"],
+              "path": ["campaigns-admin"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "APPROVED",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "List all campaigns for your organization with pagination"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Campaign",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-organization-id",
+                "value": "{{ORGANIZATION_ID}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Campaign Title\",\n  \"summary\": \"Updated summary\",\n  \"story\": \"<p>Updated story...</p>\",\n  \"target\": 6000000\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/campaigns-admin/:campaignId",
+              "host": ["{{BASE_URL}}"],
+              "path": ["campaigns-admin", ":campaignId"],
+              "variable": [
+                {
+                  "key": "campaignId",
+                  "value": "campaign_id_here"
+                }
+              ]
+            },
+            "description": "Update campaign details. Only draft or pending campaigns can be updated."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Campaign",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-organization-id",
+                "value": "{{ORGANIZATION_ID}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/campaigns-admin/:campaignId",
+              "host": ["{{BASE_URL}}"],
+              "path": ["campaigns-admin", ":campaignId"],
+              "variable": [
+                {
+                  "key": "campaignId",
+                  "value": "campaign_id_here"
+                }
+              ]
+            },
+            "description": "Delete a campaign. Only draft campaigns can be deleted."
+          },
+          "response": []
+        },
+        {
+          "name": "Request Campaign Approval",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-organization-id",
+                "value": "{{ORGANIZATION_ID}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/campaigns-admin/request-review/:campaignId",
+              "host": ["{{BASE_URL}}"],
+              "path": ["campaigns-admin", "request-review", ":campaignId"],
+              "variable": [
+                {
+                  "key": "campaignId",
+                  "value": "campaign_id_here"
+                }
+              ]
+            },
+            "description": "Submit campaign for approval review. Campaign must have all required fields and documents."
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Campaign Banner",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-organization-id",
+                "value": "{{ORGANIZATION_ID}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/campaigns-admin/upload-banner/:campaignId",
+              "host": ["{{BASE_URL}}"],
+              "path": ["campaigns-admin", "upload-banner", ":campaignId"],
+              "variable": [
+                {
+                  "key": "campaignId",
+                  "value": "campaign_id_here"
+                }
+              ]
+            },
+            "description": "Upload campaign banner image. Accepts image files (jpg, png, webp). Max size: 5MB"
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Campaign Documents",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-organization-id",
+                "value": "{{ORGANIZATION_ID}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "files",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "files",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/campaigns-admin/upload-files/:campaignId",
+              "host": ["{{BASE_URL}}"],
+              "path": ["campaigns-admin", "upload-files", ":campaignId"],
+              "variable": [
+                {
+                  "key": "campaignId",
+                  "value": "campaign_id_here"
+                }
+              ]
+            },
+            "description": "Upload supporting documents for campaign. Multiple files can be uploaded. Accepts PDF, images, and documents."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Campaign File",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-organization-id",
+                "value": "{{ORGANIZATION_ID}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/campaigns-admin/:campaignId/files/:fileKey",
+              "host": ["{{BASE_URL}}"],
+              "path": ["campaigns-admin", ":campaignId", "files", ":fileKey"],
+              "variable": [
+                {
+                  "key": "campaignId",
+                  "value": "campaign_id_here"
+                },
+                {
+                  "key": "fileKey",
+                  "value": "file_key_here"
+                }
+              ]
+            },
+            "description": "Delete a specific file from campaign"
+          },
+          "response": []
+        }
+      ],
+      "description": "Campaign management endpoints for creating, updating, and managing campaigns"
+    },
+    {
+      "name": "Campaign Categories",
+      "item": [
+        {
+          "name": "Get All Categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-organization-id",
+                "value": "{{ORGANIZATION_ID}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/campaign-categories",
+              "host": ["{{BASE_URL}}"],
+              "path": ["campaign-categories"]
+            },
+            "description": "Get list of all available campaign categories"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Category by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-organization-id",
+                "value": "{{ORGANIZATION_ID}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/campaign-categories/:categoryId",
+              "host": ["{{BASE_URL}}"],
+              "path": ["campaign-categories", ":categoryId"],
+              "variable": [
+                {
+                  "key": "categoryId",
+                  "value": "category_id_here"
+                }
+              ]
+            },
+            "description": "Get details of a specific category"
+          },
+          "response": []
+        }
+      ],
+      "description": "Campaign category endpoints"
+    },
+    {
+      "name": "Donations",
+      "item": [
+        {
+          "name": "Get Campaign Donations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-organization-id",
+                "value": "{{ORGANIZATION_ID}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/donations?campaignId=:campaignId&page=1&limit=10",
+              "host": ["{{BASE_URL}}"],
+              "path": ["donations"],
+              "query": [
+                {
+                  "key": "campaignId",
+                  "value": ":campaignId"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get list of donations for a specific campaign with pagination"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Donation Metrics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-organization-id",
+                "value": "{{ORGANIZATION_ID}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/donations/campaign/:campaignId/metrics",
+              "host": ["{{BASE_URL}}"],
+              "path": ["donations", "campaign", ":campaignId", "metrics"],
+              "variable": [
+                {
+                  "key": "campaignId",
+                  "value": "campaign_id_here"
+                }
+              ]
+            },
+            "description": "Get donation metrics for a campaign (total amount, donor count, etc.)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Donations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-organization-id",
+                "value": "{{ORGANIZATION_ID}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/donations?page=1&limit=10",
+              "host": ["{{BASE_URL}}"],
+              "path": ["donations"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2024-01-01",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-12-31",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get all donations across all campaigns for your organization"
+          },
+          "response": []
+        }
+      ],
+      "description": "Donation tracking and metrics endpoints"
+    },
+    {
+      "name": "Payouts",
+      "item": [
+        {
+          "name": "Get Payout List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-organization-id",
+                "value": "{{ORGANIZATION_ID}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/payouts?page=1&limit=10",
+              "host": ["{{BASE_URL}}"],
+              "path": ["payouts"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "campaignId",
+                  "value": "campaign_id_here",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "PENDING",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get list of all payouts with optional filters"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Payout by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-organization-id",
+                "value": "{{ORGANIZATION_ID}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/payouts/:payoutId",
+              "host": ["{{BASE_URL}}"],
+              "path": ["payouts", ":payoutId"],
+              "variable": [
+                {
+                  "key": "payoutId",
+                  "value": "payout_id_here"
+                }
+              ]
+            },
+            "description": "Get details of a specific payout"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Payout Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-organization-id",
+                "value": "{{ORGANIZATION_ID}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"campaignId\": \"campaign_id_here\",\n  \"amount\": 1000000,\n  \"reason\": \"First milestone completed - School foundation laid\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/campaigns-admin/request-payout",
+              "host": ["{{BASE_URL}}"],
+              "path": ["campaigns-admin", "request-payout"]
+            },
+            "description": "Request a payout for a campaign. Campaign must be approved and have sufficient funds."
+          },
+          "response": []
+        }
+      ],
+      "description": "Payout management endpoints"
+    },
+    {
+      "name": "Organization",
+      "item": [
+        {
+          "name": "Get Organization Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-organization-id",
+                "value": "{{ORGANIZATION_ID}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/organization-admin",
+              "host": ["{{BASE_URL}}"],
+              "path": ["organization-admin"]
+            },
+            "description": "Get your organization details"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Webhook URL",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-organization-id",
+                "value": "{{ORGANIZATION_ID}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"webhookUrl\": \"https://your-domain.com/webhooks/dynaraise\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/organization-admin/:organizationId",
+              "host": ["{{BASE_URL}}"],
+              "path": ["organization-admin", ":organizationId"],
+              "variable": [
+                {
+                  "key": "organizationId",
+                  "value": "{{ORGANIZATION_ID}}"
+                }
+              ]
+            },
+            "description": "Update your organization's webhook URL for receiving event notifications"
+          },
+          "response": []
+        }
+      ],
+      "description": "Organization management endpoints"
+    }
+  ]
+}
