@@ -16,6 +16,7 @@ Welcome to the Dynaraise Integration API documentation. This guide will help you
   - [Donations](#donations)
   - [Payouts](#payouts)
   - [Organization](#organization)
+- [Integration API](#integration-api)
 - [Advanced Querying](#advanced-querying)
   - [Filtering](#filtering)
   - [Sorting](#sorting)
@@ -470,6 +471,30 @@ const query = RequestQueryBuilder.create({
 For complete documentation including all operators and examples, see [ADVANCED_QUERYING.md](./ADVANCED_QUERYING.md).
 
 **Official Docs:** https://gid-oss.github.io/dataui-nestjs-crud/requests/
+
+## Integration API
+
+For third-party organizations that want to integrate with Dynaraise and send donations on behalf of their users, we provide dedicated Integration API endpoints.
+
+**Key Features:**
+
+- Browse and search published campaigns
+- Send donation webhooks when users donate through your platform
+- Retrieve donation history for reporting and reconciliation
+- Automatic 5% processing fee calculation
+- Idempotent webhook handling with retry support
+- Random featured campaign selection when no specific campaign is provided
+
+**Authorization Required:**
+Your organization must be authorized by a Dynaraise platform administrator to use integration donation endpoints. Contact api-support@dynaraise.com to request access.
+
+**Documentation:**
+See [INTEGRATION_API.md](./INTEGRATION_API.md) for complete integration API documentation including:
+
+- Campaign browsing
+- Donation webhook handling
+- Error handling and best practices
+- Code examples and testing guidelines
 
 ## Webhooks
 
