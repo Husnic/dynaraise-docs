@@ -84,6 +84,7 @@ curl -X POST https://api.dynaraise.com/campaigns-admin/create \
     "story": "<p>Our community desperately needs a school...</p>",
     "target": 5000000,
     "currency": "NGN",
+    "country": "NG",
     "type": "CHARITY",
     "payout": "FLEXIBLE",
     "categoryId": "category_id_from_step_above",
@@ -131,14 +132,14 @@ curl -X PATCH https://api.dynaraise.com/organization-admin/your_org_id \
 **Node.js/Express Example:**
 
 ```javascript
-const express = require('express');
+const express = require("express");
 const app = express();
 
 app.use(express.json());
 
-app.post('/webhooks/dynaraise', (req, res) => {
+app.post("/webhooks/dynaraise", (req, res) => {
   // Acknowledge receipt immediately
-  res.status(200).send('OK');
+  res.status(200).send("OK");
 
   // Process event
   const { event, data } = req.body;
@@ -146,14 +147,14 @@ app.post('/webhooks/dynaraise', (req, res) => {
 
   // Handle different events
   switch (event) {
-    case 'campaign.created':
-      console.log('New campaign:', data.campaignId);
+    case "campaign.created":
+      console.log("New campaign:", data.campaignId);
       break;
-    case 'donation.received':
-      console.log('New donation:', data.amount);
+    case "donation.received":
+      console.log("New donation:", data.amount);
       break;
-    case 'user.kyc.verified':
-      console.log('KYC verified:', data.userId);
+    case "user.kyc.verified":
+      console.log("KYC verified:", data.userId);
       break;
   }
 });
@@ -168,7 +169,7 @@ app.listen(3000);
 1. **Create Campaign** → Status: `DRAFT`
 2. **Upload Banner** → Add campaign image
 3. **Upload Documents** → Add supporting files
-4. **Request Approval** → Status: `PENDING`
+4. **Request Approval** → Status: `REQUESTED`
 5. **Wait for Approval** → Webhook: `campaign.approved`
 6. **Campaign Goes Live** → Status: `APPROVED`
 

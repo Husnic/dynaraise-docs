@@ -114,7 +114,6 @@ POST /campaigns-admin/integration/create
   "category": "category_id_here",
   "isPublic": true,
   "isSubscription": false,
-  "isForSelf": false,
   "address": "123 School Road, Rural Area",
   "state": "Lagos",
   "endDate": "2025-12-31T23:59:59.000Z",
@@ -142,16 +141,15 @@ POST /campaigns-admin/integration/create
 - `target` (required): Fundraising goal in minor currency units (e.g., kobo for NGN)
 - `currency` (required): Currency code (e.g., "NGN", "USD")
 - `country` (required): Country code (e.g., "NG")
-- `type` (required): Campaign type - `PERSONAL`, `ORGANIZATION`, or `WALLET`
+- `type` (required): Campaign type - `PERSONAL` or `ORGANIZATION`
 - `model` (required): Campaign model - `REGULAR` or `SUBSCRIPTION`
 - `payoutType` (optional): Payout type - `PARTIAL` (flexible) or `FULL` (all-or-nothing)
 - `category` (optional): Category ID
 - `isPublic` (optional): Whether campaign is publicly visible
 - `isSubscription` (optional): Enable recurring donations
-- `isForSelf` (optional): Whether campaign is for the creator
 - `address` (optional): Campaign location address
 - `state` (optional): State/region
-- `endDate` (optional): Campaign end date (ISO 8601)
+- `endDate` (required): Campaign end date (ISO 8601)
 - `videoUrl` (optional): YouTube or video URL
 - `manualRealized` (optional): Manually added amount
 - `beneficiary` (required): Beneficiary KYC details for payouts
@@ -302,16 +300,23 @@ GET /campaign-categories
 #### Get Campaign Donations
 
 ```http
-GET /donations?campaignId=campaign_id&page=1&limit=10
+GET /donations?s={"campaign.id":"campaign_id_here"}
 ```
 
-**Query Parameters:**
+**Using Advanced Query:**
 
-- `campaignId` (required): Campaign ID
-- `page` (optional): Page number
-- `limit` (optional): Items per page
-- `startDate` (optional): Filter from date (ISO 8601)
-- `endDate` (optional): Filter to date (ISO 8601)
+```javascript
+const query = RequestQueryBuilder.create()
+  .search({ "campaign.id": "campaign_id_here" })
+  .sortBy({ field: "createdAt", order: "DESC" })
+  .setLimit(10)
+  .setPage(1)
+  .query();
+
+// GET /donations?s={"campaign.id":"campaign_id_here"}&sort=createdAt,DESC&limit=10&page=1
+```
+
+See [Advanced Querying Guide](./ADVANCED_QUERYING.md) for more details.
 
 **Response:**
 

@@ -23,38 +23,101 @@ Represents a fundraising campaign.
 interface Campaign {
   id: string; // Unique campaign identifier
   title: string; // Campaign title
-  summary: string; // Brief summary (max 500 chars)
-  story: string; // Full campaign story (HTML)
+  urlSlug: string; // URL-friendly slug
+  summary?: string; // Brief summary (max 255 chars)
+  description?: string; // Full campaign story (HTML)
+  videoUrl?: string; // Video URL
   target: number; // Fundraising target amount
   currency: string; // Currency code (e.g., "NGN", "USD")
+  country: string; // Country code
+  address?: string; // Campaign location
+  state?: string; // State/region
   type: CampaignType; // Campaign type
   model: CampaignModel; // Campaign model (regular/subscription)
+  isSubscription: boolean; // Has subscription option
+  isForSelf: boolean; // Campaign for self
   payoutType: CampaignPayout; // Payout model
   published: CampaignPublishedStatus; // Publishing status
+  reviewNotes?: string; // Admin review notes
 
   // Relationships
-  userId: string; // Campaign creator/beneficiary
   user?: User; // User object
-  organizationId: string; // Individual organization ID
   organization?: Organization; // Organization object
-  parentOrganizationId: string; // Parent organization ID
-  parentOrganization?: Organization;
-  categoryId: string; // Campaign category
+  parentOrganization?: Organization; // Parent organization
   category?: Category; // Category object
 
-  // Media
-  banner?: File; // Banner image
-  files?: File[]; // Supporting documents
+  // Beneficiary & Account
+  beneficiary?: BeneficiaryDetails; // Beneficiary KYC details
+  dedicatedAccount?: DedicatedAccount; // Dedicated account info
 
-  // Metrics
-  totalDonations: number; // Total amount raised
-  donorCount: number; // Number of donors
+  // Media
+  bannerImage?: File; // Banner image
+
+  // Financial Metrics
+  realized: number; // Amount raised (primary currency)
+  amountsRaisedBreakdown?: AmountBreakdown; // Multi-currency breakdown
+  totalRealized: number; // Total including tips and fees
+  totalRealizedBreakdown?: AmountBreakdown;
+  platformTip: number; // Platform tips received
+  tipsBreakdown?: AmountBreakdown;
+  platformCharge: number; // Platform charges
+  processingFees: number; // Payment processing fees
+  processingFeesBreakdown?: AmountBreakdown;
+  transactionCharges: number; // Transaction charges
+  transactionChargesBreakdown?: AmountBreakdown;
+  manualRealized: number; // Manually added amount
+  manualRealizedBreakdown?: AmountBreakdown;
+  paidOut: number; // Amount paid out
+  paidOutBreakdown?: AmountBreakdown;
+  forfeitedAmount: number; // Forfeited amount
+  forfeitedBreakdown?: AmountBreakdown;
+  partialPayoutStatus?: PaymentStatus; // Partial payout status
+  payoutStatus?: PaymentStatus; // Full payout status
+
+  // Donor Metrics
+  donationCount: number; // Number of donations
+  donationCountBreakdown?: AmountBreakdown;
+
+  // Status Flags
+  isVerified: boolean; // Campaign verified
+  isZakatable: boolean; // Eligible for Zakat
+  isFlagged: boolean; // Flagged for review
+  isComplete: boolean; // Campaign completed
+  isDeactivated: boolean; // Campaign deactivated
+  preFunded: boolean; // Pre-funded campaign
+  preFundAmount?: number; // Pre-fund amount
+  isPlatform: boolean; // Platform-owned campaign
 
   // Timestamps
   createdAt: string; // ISO 8601 timestamp
   updatedAt: string; // ISO 8601 timestamp
   publishedAt?: string; // When campaign went live
+  completedAt?: string; // When campaign completed
+  deactivatedAt?: string; // When campaign deactivated
   endDate?: string; // Campaign end date
+}
+
+interface BeneficiaryDetails {
+  accountNumber?: string;
+  accountName?: string;
+  bankName?: string;
+  bankCode?: string;
+  bvn?: string;
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  email?: string;
+}
+
+interface DedicatedAccount {
+  accountNumber: string;
+  bankName: string;
+  beneficiaryName: string;
+}
+
+interface AmountBreakdown {
+  NGN: number;
+  USD: number;
 }
 ```
 
@@ -62,9 +125,8 @@ interface Campaign {
 
 ```typescript
 enum CampaignType {
-  PERSONAL = 'PERSONAL', // Personal fundraising
-  ORGANIZATION = 'ORGANIZATION', // Organization campaign
-  WALLET = 'WALLET', // Wallet campaign
+  PERSONAL = "PERSONAL", // Personal fundraising
+  ORGANIZATION = "ORGANIZATION", // Organization campaign
 }
 ```
 
@@ -72,11 +134,11 @@ enum CampaignType {
 
 ```typescript
 enum CampaignPublishedStatus {
-  PENDING = 'PENDING', // Awaiting approval
-  REQUESTED = 'REQUESTED', // Review requested
-  APPROVED = 'APPROVED', // Approved and live
-  DECLINED = 'DECLINED', // Rejected
-  BANNED = 'BANNED', // Banned from platform
+  PENDING = "PENDING", // Awaiting approval
+  REQUESTED = "REQUESTED", // Review requested
+  APPROVED = "APPROVED", // Approved and live
+  DECLINED = "DECLINED", // Rejected
+  BANNED = "BANNED", // Banned from platform
 }
 ```
 
@@ -84,8 +146,8 @@ enum CampaignPublishedStatus {
 
 ```typescript
 enum CampaignPayout {
-  PARTIAL = 'PARTIAL', // Receive funds anytime (flexible)
-  FULL = 'FULL', // Only if target is met (all or nothing)
+  PARTIAL = "PARTIAL", // Receive funds anytime (flexible)
+  FULL = "FULL", // Only if target is met (all or nothing)
 }
 ```
 
@@ -93,8 +155,8 @@ enum CampaignPayout {
 
 ```typescript
 enum CampaignModel {
-  REGULAR = 'REGULAR', // One-time campaign
-  SUBSCRIPTION = 'SUBSCRIPTION', // Recurring donations
+  REGULAR = "REGULAR", // One-time campaign
+  SUBSCRIPTION = "SUBSCRIPTION", // Recurring donations
 }
 ```
 
@@ -104,20 +166,26 @@ enum CampaignModel {
 {
   "id": "01JBCDEF123456789ABCDEFGH",
   "title": "Help Build a School in Rural Nigeria",
+  "urlSlug": "help-build-school-rural-nigeria",
   "summary": "Raising funds to construct a primary school for 200 children",
-  "story": "<p>Our community needs a school...</p>",
+  "description": "<p>Our community needs a school...</p>",
   "target": 5000000,
   "currency": "NGN",
+  "country": "NG",
   "type": "PERSONAL",
   "model": "REGULAR",
+  "isSubscription": false,
+  "isForSelf": false,
   "payoutType": "PARTIAL",
   "published": "APPROVED",
-  "userId": "01JBUSER123456789ABCDEFGH",
-  "organizationId": "01JBORG123456789ABCDEFGH",
-  "parentOrganizationId": "01JBPARENT123456789ABCD",
-  "categoryId": "01JBCAT123456789ABCDEFGH",
-  "totalDonations": 2500000,
-  "donorCount": 150,
+  "realized": 2500000,
+  "totalRealized": 2650000,
+  "platformTip": 100000,
+  "platformCharge": 50000,
+  "donationCount": 150,
+  "isVerified": true,
+  "isComplete": false,
+  "isDeactivated": false,
   "createdAt": "2024-01-01T00:00:00.000Z",
   "updatedAt": "2024-01-15T00:00:00.000Z",
   "publishedAt": "2024-01-02T00:00:00.000Z"
@@ -144,10 +212,8 @@ interface User {
   isEmailVerified: boolean; // Email verification status
   isVerified: VerificationStatus; // KYC verification status
   isActive: boolean; // Account active status
-  isAdmin: boolean; // Admin privileges
 
   // Relationships
-  organizationId: string; // User's organization
   organization?: Organization; // Organization object
 
   // Profile
@@ -164,11 +230,11 @@ interface User {
 
 ```typescript
 enum UserType {
-  PLATFORM = 'PLATFORM', // Platform user
-  ORGANIZATION = 'ORGANIZATION', // Organization admin
-  ORGANIZATION_USER = 'ORGANIZATION_USER', // Organization member
-  EMPLOYEE = 'EMPLOYEE', // Platform employee
-  COLLABORATOR = 'COLLABORATOR', // Campaign collaborator
+  PLATFORM = "PLATFORM", // Platform user
+  ORGANIZATION = "ORGANIZATION", // Organization admin
+  ORGANIZATION_USER = "ORGANIZATION_USER", // Organization member
+  EMPLOYEE = "EMPLOYEE", // Platform employee
+  COLLABORATOR = "COLLABORATOR", // Campaign collaborator
 }
 ```
 
@@ -187,7 +253,6 @@ enum UserType {
   "isVerified": "APPROVED",
   "isActive": true,
   "isAdmin": false,
-  "organizationId": "01JBORG123456789ABCDEFGH",
   "createdAt": "2024-01-01T00:00:00.000Z",
   "updatedAt": "2024-01-01T00:00:00.000Z"
 }
@@ -225,14 +290,12 @@ interface Organization {
   webhookUrl?: string; // Webhook endpoint URL
 
   // Relationships
-  ownerId: string; // Organization owner
   owner?: User; // Owner object
-  parentOrganizationId?: string; // Parent organization
   parentOrganization?: Organization;
 
   // Media
   logo?: File; // Logo image
-  banner?: File; // Banner image
+  bannerImage?: File; // Banner image
 
   // Banking (for payouts)
   dedicatedAccount?: {
@@ -251,8 +314,8 @@ interface Organization {
 
 ```typescript
 enum OrganizationType {
-  INDIVIDUAL = 'INDIVIDUAL', // Individual entity
-  ORGANIZATION = 'ORGANIZATION', // Registered organization
+  INDIVIDUAL = "INDIVIDUAL", // Individual entity
+  ORGANIZATION = "ORGANIZATION", // Registered organization
 }
 ```
 
@@ -275,7 +338,6 @@ enum OrganizationType {
   "isActive": true,
   "isFlagged": false,
   "webhookUrl": "https://hopefoundation.org/webhooks/dynaraise",
-  "ownerId": "01JBUSER123456789ABCDEFGH",
   "createdAt": "2024-01-01T00:00:00.000Z",
   "updatedAt": "2024-01-01T00:00:00.000Z"
 }
@@ -293,32 +355,52 @@ interface Donation {
   amount: number; // Donation amount
   currency: string; // Currency code
 
-  // Fees
+  // Fees & Charges
   processingFees: number; // Payment processing fees
-  charges: number; // Platform charges
-  netAmount: number; // Amount after fees
+  charges?: number; // Additional charges
+  platformTip: number; // Platform tip amount
+  platformCharge: number; // Platform charge
+  isAddedPlatformTip: boolean; // Whether tip was added
+  donorPaidFees: boolean; // Whether donor covered fees
 
   // Donor Information
-  email: string; // Donor email
+  email?: string; // Donor email
+  phoneNumber?: string; // Donor phone number
   displayName?: string; // Display name (or "Anonymous")
   displayLocation?: string; // Display location
-  message?: string; // Donor message
-  isAnonymous: boolean; // Anonymous donation
+  followConsent: boolean; // Follow-up consent
+  newsletterConsent: boolean; // Newsletter consent
 
   // Payment
-  reference: string; // Payment reference
-  paymentMethod: string; // Payment method used
+  provider: PaymentProvider; // Payment provider (PAYSTACK, etc.)
+  transactionReference?: string; // Payment reference
+  paymentLink?: string; // Payment link
   paymentStatus: PaymentStatus; // Payment status
+  isSuccessfullyDonated: boolean; // Donation completed
+  isDedicatedNuban: boolean; // Via dedicated account
+
+  // Campaign & Subscription
+  isPrefund: boolean; // Pre-fund donation
+  isSubscription: boolean; // Recurring donation
+  campaignCount: number; // Number of campaigns donated to
 
   // Relationships
-  campaignId: string; // Campaign ID
-  campaign?: Campaign; // Campaign object
-  userId?: string; // Donor user ID (if registered)
-  user?: User; // User object
+  campaigns?: Campaign[]; // Campaign objects
+  campaignCategories?: CampaignCategory[]; // Categories
+  user?: User; // User object (if registered)
+  referrer?: User; // Referrer user
+  givingLevel?: CampaignLevel; // Giving level
+  subscription?: CampaignSubscription; // Subscription object
 
   // Timestamps
   createdAt: string; // ISO 8601 timestamp
-  paidAt?: string; // Payment completion time
+  updatedAt: string; // ISO 8601 timestamp
+}
+
+enum PaymentProvider {
+  PAYSTACK = "PAYSTACK",
+  FLUTTERWAVE = "FLUTTERWAVE",
+  STRIPE = "STRIPE",
 }
 ```
 
@@ -326,11 +408,11 @@ interface Donation {
 
 ```typescript
 enum PaymentStatus {
-  PENDING = 'PENDING', // Payment initiated
-  REQUESTED = 'REQUESTED', // Payment requested
-  SUCCESSFUL = 'SUCCESSFUL', // Payment successful
-  FAILED = 'FAILED', // Payment failed
-  CANCELED = 'CANCELED', // Payment canceled
+  PENDING = "PENDING", // Payment initiated
+  REQUESTED = "REQUESTED", // Payment requested
+  SUCCESSFUL = "SUCCESSFUL", // Payment successful
+  FAILED = "FAILED", // Payment failed
+  CANCELED = "CANCELED", // Payment canceled
 }
 ```
 
@@ -343,18 +425,26 @@ enum PaymentStatus {
   "currency": "NGN",
   "processingFees": 1500,
   "charges": 500,
-  "netAmount": 48000,
+  "platformTip": 5000,
+  "platformCharge": 1000,
+  "isAddedPlatformTip": true,
+  "donorPaidFees": true,
   "email": "donor@example.com",
-  "displayName": "John D.",
+  "phoneNumber": "+2348012345678",
+  "displayName": "John Doe",
   "displayLocation": "Lagos, Nigeria",
-  "message": "Great cause!",
-  "isAnonymous": false,
-  "reference": "TXN_123456789",
-  "paymentMethod": "card",
+  "followConsent": true,
+  "newsletterConsent": false,
+  "provider": "PAYSTACK",
+  "transactionReference": "TXN_123456789",
   "paymentStatus": "SUCCESSFUL",
-  "campaignId": "01JBCDEF123456789ABCDEFGH",
-  "createdAt": "2024-01-15T10:30:00.000Z",
-  "paidAt": "2024-01-15T10:30:15.000Z"
+  "isSuccessfullyDonated": true,
+  "isDedicatedNuban": false,
+  "isPrefund": false,
+  "isSubscription": false,
+  "campaignCount": 1,
+  "createdAt": "2024-01-05T10:30:00.000Z",
+  "updatedAt": "2024-01-05T10:30:15.000Z"
 }
 ```
 
@@ -367,34 +457,37 @@ Represents a payout request for a campaign.
 ```typescript
 interface Payout {
   id: string; // Unique payout identifier
-  amount: number; // Payout amount
-  currency: string; // Currency code
-  reason?: string; // Payout reason/description
+  payoutAmount: number; // Payout amount
+  payoutAmountBreakdown?: AmountBreakdown; // Multi-currency breakdown
+  currency?: string; // Currency code
   payoutStatus: PaymentStatus; // Current status
+  isPartial: boolean; // Partial payout flag
 
-  // Banking
-  accountNumber: string; // Recipient account
-  accountName: string; // Account holder name
-  bankName: string; // Bank name
-  bankCode: string; // Bank code
+  // Fees & Charges
+  transactionCharges: number; // Transaction charges
+  processingFees: number; // Processing fees
+  platformTip: number; // Platform tip amount
+  platformCharge: number; // Platform charge
 
-  // Payment
-  reference?: string; // Payment reference
-  transactionId?: string; // Transaction ID
+  // Forfeiture
+  forfeitureType?: ForfeitureType; // Forfeiture type
+  forfeitureRecipientId?: string; // Recipient of forfeited amount
+  forfeitedAmount?: number; // Amount forfeited
 
   // Relationships
-  campaignId: string; // Campaign ID
   campaign?: Campaign; // Campaign object
-  requestedById: string; // User who requested
-  requestedBy?: User; // User object
-  approvedById?: string; // Admin who approved
-  approvedBy?: User; // Admin object
 
   // Timestamps
   createdAt: string; // ISO 8601 timestamp
-  approvedAt?: string; // Approval time
-  processedAt?: string; // Processing time
-  completedAt?: string; // Completion time
+  updatedAt: string; // ISO 8601 timestamp
+  payoutDate: string; // Payout date
+  successfulAt?: string; // Success timestamp
+}
+
+enum ForfeitureType {
+  PLATFORM = "PLATFORM",
+  ORGANIZATION = "ORGANIZATION",
+  CAMPAIGN = "CAMPAIGN",
 }
 ```
 
@@ -403,23 +496,25 @@ interface Payout {
 ```json
 {
   "id": "01JBPAY123456789ABCDEFGH",
-  "amount": 1000000,
+  "payoutAmount": 1000000,
+  "payoutAmountBreakdown": {
+    "NGN": 1000000,
+    "USD": 0
+  },
   "currency": "NGN",
-  "reason": "First milestone completed - School foundation laid",
   "payoutStatus": "SUCCESSFUL",
-  "accountNumber": "0123456789",
-  "accountName": "John Doe",
-  "bankName": "Access Bank",
-  "bankCode": "044",
-  "reference": "PAYOUT_123456789",
-  "transactionId": "TXN_987654321",
-  "campaignId": "01JBCDEF123456789ABCDEFGH",
-  "requestedById": "01JBUSER123456789ABCDEFGH",
-  "approvedById": "01JBADMIN123456789ABCDEF",
+  "isPartial": true,
+  "transactionCharges": 50000,
+  "processingFees": 15000,
+  "platformTip": 20000,
+  "platformCharge": 10000,
+  "forfeitureType": null,
+  "forfeitureRecipientId": null,
+  "forfeitedAmount": 0,
+  "payoutDate": "2024-01-20T00:00:00.000Z",
+  "successfulAt": "2024-01-21T02:00:00.000Z",
   "createdAt": "2024-01-20T00:00:00.000Z",
-  "approvedAt": "2024-01-21T00:00:00.000Z",
-  "processedAt": "2024-01-21T01:00:00.000Z",
-  "completedAt": "2024-01-21T02:00:00.000Z"
+  "updatedAt": "2024-01-21T02:00:00.000Z"
 }
 ```
 
@@ -434,13 +529,7 @@ interface KYC {
   id: string; // Unique KYC identifier
 
   // Bank Details
-  bankDetails: {
-    accountNumber: string; // Bank account number
-    accountName: string; // Account holder name
-    bankName: string; // Bank name
-    bankCode: string; // Bank code
-    bvn?: string; // BVN (nullified after verification)
-  };
+  bankDetails?: IBankDetails; // Bank account details
 
   // Status
   reviewStatus: VerificationStatus; // Verification status
@@ -453,13 +542,19 @@ interface KYC {
   otherFiles?: File[]; // Additional documents
 
   // Relationships
-  organizationId: string; // Organization ID
   organization?: Organization; // Organization object
 
   // Timestamps
   createdAt: string; // ISO 8601 timestamp
   updatedAt: string; // ISO 8601 timestamp
-  verifiedAt?: string; // Verification completion time
+}
+
+interface IBankDetails {
+  accountNumber: string; // Bank account number
+  accountName: string; // Account holder name
+  bankName: string; // Bank name
+  bankCode: string; // Bank code
+  bvn?: string; // BVN (nullified after verification)
 }
 ```
 
@@ -477,7 +572,6 @@ interface KYC {
   },
   "reviewStatus": "APPROVED",
   "statusMessage": "Verification successful",
-  "organizationId": "01JBORG123456789ABCDEFGH",
   "createdAt": "2024-01-01T00:00:00.000Z",
   "updatedAt": "2024-01-02T00:00:00.000Z",
   "verifiedAt": "2024-01-02T00:00:00.000Z"
@@ -500,7 +594,6 @@ interface Category {
   isActive: boolean; // Active status
 
   // Relationships
-  organizationId?: string; // Organization (for custom categories)
 
   // Timestamps
   createdAt: string; // ISO 8601 timestamp
@@ -529,11 +622,11 @@ interface Category {
 
 ```typescript
 enum VerificationStatus {
-  PENDING = 'PENDING', // Not yet verified
-  REQUESTED = 'REQUESTED', // Verification requested
-  APPROVED = 'APPROVED', // Verified and approved
-  DECLINED = 'DECLINED', // Verification declined
-  BANNED = 'BANNED', // Banned from platform
+  PENDING = "PENDING", // Not yet verified
+  REQUESTED = "REQUESTED", // Verification requested
+  APPROVED = "APPROVED", // Verified and approved
+  DECLINED = "DECLINED", // Verification declined
+  BANNED = "BANNED", // Banned from platform
 }
 ```
 
