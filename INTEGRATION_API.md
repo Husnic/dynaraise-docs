@@ -193,18 +193,12 @@ curl -X POST "https://service-test.dynaraise.com/donations-integration/webhook" 
   "amount": 50000,
   "currency": "NGN",
   "displayName": "Jane Smith",
-  "processingFees": 2500,
   "transactionReference": "TXN_123456789",
   "paymentStatus": "SUCCESSFUL",
   "isSuccessfullyDonated": true,
   "createdAt": "2024-01-01T12:00:00.000Z"
 }
 ```
-
-**Processing Fees:**
-
-- A 5% processing fee is automatically calculated and deducted from each donation
-- Example: ₦50,000 donation = ₦2,500 processing fee, ₦47,500 goes to campaign
 
 **Idempotency:**
 
