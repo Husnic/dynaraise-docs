@@ -152,6 +152,56 @@ The webhook endpoint receives different event types from integration partners. A
 POST /donations-integration/webhook
 ```
 
+**Security Headers:**
+
+All webhook requests include security headers for verification:
+
+| Header                | Description                                                        |
+| --------------------- | ------------------------------------------------------------------ |
+| `X-Webhook-Signature` | HMAC-SHA256 signature of the request body (see verification below) |
+| `X-Webhook-Event`     | Event type (e.g., "donation.completed")                            |
+| `X-Organization-Id`   | Your organization ID                                               |
+| `X-Webhook-Timestamp` | ISO 8601 timestamp when the webhook was sent                       |
+
+**Webhook Signature Verification:**
+
+To ensure webhooks are from Dynaraise, verify the HMAC-SHA256 signature:
+
+```javascript
+const crypto = require("crypto");
+
+function verifyWebhookSignature(payload, signature, secret) {
+  // Remove 'sha256=' prefix if present
+  const sig = signature.startsWith("sha256=") ? signature.slice(7) : signature;
+
+  // Generate expected signature
+  const expectedSignature = crypto
+    .createHmac("sha256", secret)
+    .update(payload, "utf8")
+    .digest("hex");
+
+  // Use timing-safe comparison
+  return crypto.timingSafeEqual(
+    Buffer.from(sig, "hex"),
+    Buffer.from(expectedSignature, "hex"),
+  );
+}
+
+// Example usage
+app.post("/donations-integration/webhook", (req, res) => {
+  const signature = req.headers["x-webhook-signature"];
+  const payload = JSON.stringify(req.body);
+  const secret = "your_api_key_here"; // Use your API key as the secret
+
+  if (!verifyWebhookSignature(payload, signature, secret)) {
+    return res.status(401).send("Invalid signature");
+  }
+
+  // Process webhook...
+  res.status(200).send("OK");
+});
+```
+
 **Common Request Structure:**
 
 ```json
@@ -387,7 +437,7 @@ Contact Dynaraise support to configure your organization's webhook URL. All outb
 
 ### Event: donation.received
 
-Sent when a donation is successfully processed for a campaign belonging to your organization (where `parentOrganization` is not "platform").
+Sent when a donation is successfully processed for a campaign belonging to your organization
 
 **Webhook Payload:**
 
@@ -645,7 +695,7 @@ async function sendDonation(donationData, retries = 3) {
       // Retry on 5xx or 429
       if (i < retries - 1) {
         await new Promise((resolve) =>
-          setTimeout(resolve, Math.pow(2, i) * 1000)
+          setTimeout(resolve, Math.pow(2, i) * 1000),
         );
       }
     } catch (error) {
@@ -665,7 +715,7 @@ const campaigns = await fetch(
   "/campaigns-integration?isFeatured=true&limit=20",
   {
     headers: { "x-api-key": API_KEY },
-  }
+  },
 );
 
 // Allow users to select a campaign or donate to random featured campaign

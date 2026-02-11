@@ -49,9 +49,9 @@ Your endpoint should:
 **Example (Node.js/Express):**
 
 ```javascript
-app.post('/webhooks/dynaraise', async (req, res) => {
+app.post("/webhooks/dynaraise", async (req, res) => {
   // Acknowledge receipt immediately
-  res.status(200).send('OK');
+  res.status(200).send("OK");
 
   // Process event asynchronously
   const { event, data, timestamp, organizationId } = req.body;
@@ -59,14 +59,85 @@ app.post('/webhooks/dynaraise', async (req, res) => {
   try {
     await processWebhookEvent(event, data);
   } catch (error) {
-    console.error('Webhook processing error:', error);
+    console.error("Webhook processing error:", error);
   }
 });
 ```
 
 ### 3. Verify Webhook Source
 
-Always verify the webhook is from Dynaraise:
+Always verify the webhook is from Dynaraise using the HMAC-SHA256 signature:
+
+**Security Headers:**
+
+Dynaraise includes these headers with every webhook:
+
+| Header                | Description                                  |
+| --------------------- | -------------------------------------------- |
+| `X-Webhook-Signature` | HMAC-SHA256 signature of the request body    |
+| `X-Webhook-Event`     | Event type (e.g., "user.created")            |
+| `X-Organization-Id`   | Your organization ID                         |
+| `X-Webhook-Timestamp` | ISO 8601 timestamp when the webhook was sent |
+
+**Signature Verification:**
+
+````javascript
+const crypto = require('crypto');
+
+function verifyWebhookSignature(payload, signature, secret) {
+  // Remove 'sha256=' prefix if present
+  const sig = signature.startsWith('sha256=') ? signature.slice(7) : signature;
+
+  // Generate expected signature
+  const expectedSignature = crypto
+    .createHmac('sha256', secret)
+    .update(payload, 'utf8')
+    .digest('hex');
+
+  // Use timing-safe comparison
+  return crypto.timingSafeEqual(
+    Buffer.from(sig, 'hex'),
+    Buffer.from(expectedSignature, 'hex')
+  );
+}
+
+// Complete webhook handler with verification
+app.post('/webhooks/dynaraise', express.raw({ type: 'application/json' }), (req, res) => {
+  const signature = req.headers['x-webhook-signature'];
+  const payload = req.body.toString(); // Raw body as string
+  const secret = 'your_api_key_here'; // Use your API key as the secret
+
+  // Verify signature
+  if (!verifyWebhookSignature(payload, signature, secret)) {
+    console.error('Invalid webhook signature');
+    return res.status(401).send('Unauthorized');
+  }
+
+  // Parse JSON after verification
+  const event = JSON.parse(payload);
+
+  // Acknowledge receipt immediately
+  res.status(200).send('OK');
+
+  // Process event asynchronously
+  processWebhookEvent(event);
+});
+
+// Alternative with express.json() middleware
+function verifyWebhook(req) {
+  const signature = req.headers['x-webhook-signature'];
+  const payload = JSON.stringify(req.body); // Reconstruct JSON string
+  const secret = 'your_api_key_here';
+
+  if (!signature || !verifyWebhookSignature(payload, signature, secret)) {
+    throw new Error('Invalid webhook signature');
+  }
+}
+```
+
+**Additional Verification (Optional):**
+
+You can also verify the organization ID matches your expected value:
 
 ```javascript
 const organizationId = req.headers['x-organization-id'];
@@ -74,7 +145,7 @@ const organizationId = req.headers['x-organization-id'];
 if (organizationId !== process.env.YOUR_ORGANIZATION_ID) {
   return res.status(403).send('Forbidden');
 }
-```
+````
 
 ## Security
 
@@ -99,19 +170,19 @@ X-Organization-Id: your_organization_id
 
 ```javascript
 function verifyWebhook(req) {
-  const orgId = req.headers['x-organization-id'];
+  const orgId = req.headers["x-organization-id"];
   const timestamp = new Date(req.body.timestamp);
   const now = new Date();
 
   // Check organization ID
   if (orgId !== process.env.YOUR_ORGANIZATION_ID) {
-    throw new Error('Invalid organization ID');
+    throw new Error("Invalid organization ID");
   }
 
   // Check timestamp (reject if older than 5 minutes)
   const ageInMinutes = (now - timestamp) / 1000 / 60;
   if (ageInMinutes > 5) {
-    throw new Error('Webhook too old');
+    throw new Error("Webhook too old");
   }
 
   return true;
@@ -348,15 +419,15 @@ After 3 failed attempts:
 
 ```javascript
 // ✅ Good - Respond immediately
-app.post('/webhooks', async (req, res) => {
-  res.status(200).send('OK');
+app.post("/webhooks", async (req, res) => {
+  res.status(200).send("OK");
   await processEventAsync(req.body);
 });
 
 // ❌ Bad - Blocking response
-app.post('/webhooks', async (req, res) => {
+app.post("/webhooks", async (req, res) => {
   await processEvent(req.body); // Don't wait!
-  res.status(200).send('OK');
+  res.status(200).send("OK");
 });
 ```
 
@@ -371,7 +442,7 @@ async function processWebhook(payload) {
   const eventId = `${payload.event}-${payload.timestamp}-${payload.data.userId}`;
 
   if (processedEvents.has(eventId)) {
-    console.log('Event already processed');
+    console.log("Event already processed");
     return;
   }
 
@@ -385,16 +456,16 @@ async function processWebhook(payload) {
 ### 3. Handle Errors Gracefully
 
 ```javascript
-app.post('/webhooks', async (req, res) => {
+app.post("/webhooks", async (req, res) => {
   try {
     // Acknowledge receipt first
-    res.status(200).send('OK');
+    res.status(200).send("OK");
 
     // Process with error handling
     await processWebhook(req.body);
   } catch (error) {
     // Log error but don't fail the webhook
-    console.error('Webhook processing error:', error);
+    console.error("Webhook processing error:", error);
     // Store for manual review
     await saveFailedWebhook(req.body, error);
   }
@@ -406,7 +477,7 @@ app.post('/webhooks', async (req, res) => {
 Keep a log of all received webhooks for debugging:
 
 ```javascript
-app.post('/webhooks', async (req, res) => {
+app.post("/webhooks", async (req, res) => {
   // Log incoming webhook
   await logWebhook({
     event: req.body.event,
@@ -415,7 +486,7 @@ app.post('/webhooks', async (req, res) => {
     headers: req.headers,
   });
 
-  res.status(200).send('OK');
+  res.status(200).send("OK");
   await processWebhook(req.body);
 });
 ```
@@ -442,86 +513,93 @@ Use tools like:
 ### Complete Express.js Example
 
 ```javascript
-const express = require('express');
+const express = require("express");
 const app = express();
 
 app.use(express.json());
 
 // Webhook endpoint
-app.post('/webhooks/dynaraise', async (req, res) => {
+app.post("/webhooks/dynaraise", async (req, res) => {
   try {
-    // Verify webhook
-    verifyWebhook(req);
+    // Verify webhook signature
+    const signature = req.headers["x-webhook-signature"];
+    const payload = JSON.stringify(req.body);
+    const secret = process.env.DYNARAISE_API_KEY; // Your API key
+
+    if (!verifyWebhookSignature(payload, signature, secret)) {
+      console.error("Invalid webhook signature");
+      return res.status(401).send("Unauthorized");
+    }
 
     // Acknowledge receipt immediately
-    res.status(200).send('OK');
+    res.status(200).send("OK");
 
     // Process asynchronously
     const { event, data, timestamp } = req.body;
 
     // Check for duplicates
     if (await isDuplicate(event, timestamp, data)) {
-      console.log('Duplicate webhook ignored');
+      console.log("Duplicate webhook ignored");
       return;
     }
 
     // Route to appropriate handler
     switch (event) {
-      case 'user.created':
+      case "user.created":
         await handleUserCreated(data);
         break;
-      case 'user.kyc.pending':
+      case "user.kyc.pending":
         await handleKycPending(data);
         break;
-      case 'user.kyc.verified':
+      case "user.kyc.verified":
         await handleKycVerified(data);
         break;
-      case 'user.kyc.failed':
+      case "user.kyc.failed":
         await handleKycFailed(data);
         break;
-      case 'campaign.created':
+      case "campaign.created":
         await handleCampaignCreated(data);
         break;
-      case 'campaign.approved':
+      case "campaign.approved":
         await handleCampaignApproved(data);
         break;
-      case 'donation.received':
+      case "donation.received":
         await handleDonationReceived(data);
         break;
       default:
-        console.log('Unknown event:', event);
+        console.log("Unknown event:", event);
     }
 
     // Log success
     await logWebhookSuccess(event, timestamp);
   } catch (error) {
-    console.error('Webhook error:', error);
+    console.error("Webhook error:", error);
     await logWebhookError(req.body, error);
   }
 });
 
 // Event handlers
 async function handleUserCreated(data) {
-  console.log('New user created:', data.userId);
+  console.log("New user created:", data.userId);
   // Update your database
   // Send notifications
 }
 
 async function handleKycVerified(data) {
-  console.log('KYC verified for user:', data.userId);
+  console.log("KYC verified for user:", data.userId);
   // Enable payout features
   // Notify beneficiary
 }
 
 async function handleDonationReceived(data) {
-  console.log('New donation:', data.donationId);
+  console.log("New donation:", data.donationId);
   // Update campaign progress
   // Send thank you email
   // Update analytics
 }
 
 app.listen(3000, () => {
-  console.log('Webhook server running on port 3000');
+  console.log("Webhook server running on port 3000");
 });
 ```
 
