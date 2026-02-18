@@ -304,11 +304,82 @@ Triggered when a new campaign is created.
   "timestamp": "2024-01-01T12:00:00.000Z",
   "organizationId": "org_id",
   "data": {
-    "campaignId": "campaign_id",
+    "id": "campaign_id",
     "title": "Campaign Title",
+    "urlSlug": "campaign-title",
+    "description": "Campaign description",
+    "summary": "Campaign summary",
     "target": 5000000,
     "currency": "NGN",
-    "userId": "user_id"
+    "type": "FUNDRAISING",
+    "model": "STANDARD",
+    "published": true,
+    "isComplete": false,
+    "isSubscription": false,
+    "isDeactivated": false,
+    "isPublic": true,
+    "realized": 0,
+    "totalRealized": 0,
+    "manualRealized": 0,
+    "donationCount": 0,
+    "endDate": "2024-12-31T23:59:59.000Z",
+    "createdAt": "2024-01-01T12:00:00.000Z",
+    "updatedAt": "2024-01-01T12:00:00.000Z",
+    "reviewNotes": null,
+    "user": {
+      "id": "user_id",
+      "firstName": "John",
+      "lastName": "Doe",
+      "urlSlug": "john-doe",
+      "organization": "User Organization",
+      "avatar": {
+        "key": "avatar_key",
+        "fileName": "avatar.jpg"
+      }
+    },
+    "organization": {
+      "id": "org_id",
+      "name": "Organization Name",
+      "urlSlug": "organization-name",
+      "logo": {
+        "key": "logo_key",
+        "fileName": "logo.png"
+      },
+      "owner": {
+        "id": "owner_id"
+      }
+    },
+    "parentOrganization": {
+      "id": "parent_org_id",
+      "name": "Parent Organization"
+    },
+    "category": {
+      "id": "category_id",
+      "name": "Education"
+    },
+    "bannerImage": {
+      "key": "banner_key",
+      "fileName": "banner.jpg"
+    },
+    "campaignFiles": [
+      {
+        "key": "file_key",
+        "fileName": "document.pdf",
+        "format": "PDF"
+      }
+    ],
+    "givingLevels": [
+      {
+        "id": "level_id",
+        "title": "Bronze Supporter",
+        "summary": "Basic support level",
+        "currency": "NGN",
+        "amount": 10000,
+        "donationCount": 0,
+        "interval": "ONE_TIME"
+      }
+    ],
+    "payouts": []
   }
 }
 ```

@@ -43,14 +43,12 @@ Welcome to the Dynaraise Integration API documentation. This guide will help you
 ### Quick Start
 
 1. **Get Your API Key**
-
    - Log in to your Dynaraise admin dashboard
    - Navigate to Organization Settings → API Keys
    - Click "Create API Key"
    - Copy and securely store your API key (it will only be shown once)
 
 2. **Import Postman Collection**
-
    - Import `dynaraise-integration-api.postman_collection.json` into Postman
    - Set your `API_KEY` and `ORGANIZATION_ID` in the collection variables
    - Start making requests!
@@ -229,6 +227,72 @@ PATCH /campaigns-admin/:campaignId
 
 **Note:** All fields are optional. Only include fields you want to update. BVN is not required for updates.
 
+#### Bank Account Verification Guide
+
+To ensure accurate bank account details when updating user profiles, follow these steps:
+
+**Step 1: Get Available Banks**
+
+First, retrieve the list of supported banks and their codes:
+
+```http
+GET /payment/banks
+Authorization: Bearer <your_jwt_token>
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "name": "Access Bank",
+      "code": "044"
+    },
+    {
+      "name": "Guaranty Trust Bank",
+      "code": "058"
+    },
+    {
+      "name": "First Bank of Nigeria",
+      "code": "011"
+    }
+    // ... more banks
+  ]
+}
+```
+
+**Step 2: Verify Account Details**
+
+Before updating a user's bank account information, verify the account number and get the correct account name:
+
+```http
+POST /payment/verify-account
+Content-Type: application/json
+
+{
+  "accountNumber": "0123456789",
+  "bankCode": "044"
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "account_name": "JOHN DOE",
+    "account_number": "0123456789"
+  }
+}
+```
+
+**Step 3: Use Verified Details**
+
+Use the verified account name and bank details when updating the user profile to ensure accuracy and prevent payout issues.
+
 #### Delete Campaign
 
 Delete a campaign (only DRAFT campaigns can be deleted).
@@ -301,7 +365,7 @@ GET /campaign-categories
 #### Get Campaign Donations
 
 ```http
-GET /donations?s={"campaign.id":"campaign_id_here"}
+GET /donations?s={"custom query here"}
 ```
 
 **Using Advanced Query:**
@@ -314,7 +378,7 @@ const query = RequestQueryBuilder.create()
   .setPage(1)
   .query();
 
-// GET /donations?s={"campaign.id":"campaign_id_here"}&sort=createdAt,DESC&limit=10&page=1
+// GET /donations?s={custom-query}&sort=createdAt,DESC&limit=10&page=1
 ```
 
 See [Advanced Querying Guide](./ADVANCED_QUERYING.md) for more details.
@@ -481,7 +545,6 @@ For third-party organizations that want to integrate with Dynaraise and send don
 - Browse and search published campaigns
 - Send donation webhooks when users donate through your platform
 - Retrieve donation history for reporting and reconciliation
-- Automatic 5% processing fee calculation
 - Idempotent webhook handling with retry support
 - Random featured campaign selection when no specific campaign is provided
 
