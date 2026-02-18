@@ -281,11 +281,8 @@ Content-Type: application/json
 
 ```json
 {
-  "success": true,
-  "data": {
-    "account_name": "JOHN DOE",
-    "account_number": "0123456789"
-  }
+  "account_name": "JOHN DOE",
+  "account_number": "0123456789"
 }
 ```
 
