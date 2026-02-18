@@ -58,6 +58,12 @@ Welcome to the Dynaraise Integration API documentation. This guide will help you
    - Implement webhook handlers for real-time event notifications
    - See [Webhooks Documentation](./WEBHOOKS.md) for details
 
+4. **File and Image Access**
+   - All document and image files are served from: `dynafiles.dynaraise.com`
+   - To access any file, append the file `key` to the base path
+   - Example: `https://dynafiles.dynaraise.com/{file_key}`
+   - This applies to user avatars, organization logos, campaign banners, and campaign files
+
 ## Authentication
 
 All API requests must include your API key in the request headers:
