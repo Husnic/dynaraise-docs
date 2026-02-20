@@ -309,7 +309,7 @@ DELETE /campaigns-admin/:campaignId
 Submit campaign for admin review.
 
 ```http
-POST /campaigns-admin/request-review/:campaignId
+PATCH /campaigns-admin/request-review/:campaignId
 ```
 
 **Webhooks Triggered:**
